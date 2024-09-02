@@ -6,10 +6,10 @@ from firebase_admin import credentials, db
 
 class FirebaseConnection:
 
-    def __init__(self, service_key_path, db_url, app_name):
+    def __init__(self, service_key, db_url, app_name):
         self.app_name = app_name
         self.db_url = db_url
-        self.service_key_path = service_key_path
+        self.service_key = service_key
         self.app = self.initialize_connection()
 
     def getOnlineValues(self):
@@ -17,10 +17,19 @@ class FirebaseConnection:
             try:
                 ref = db.reference("/configs/", app=self.app)
                 return {
-                    'termos': str(ref.child('termos').get()).split(','),
-                    'minimoDiario': ref.child('minimoDiario').get(),
-                    'qtyPorTermo': ref.child('qtyPorTermo').get(),
-                    'maxTentativas': ref.child('maxTentativas').get()
+                    'termos'        : str(ref.child('termos').get()).split(','),
+                    'minimoDiario'  : ref.child('minimoDiario').get(),
+                    'qtyPorTermo'   : ref.child('qtyPorTermo').get(),
+                    'maxTentativas' : ref.child('maxTentativas').get(),
+                    'sites':{
+                        'xvideos'   : bool(ref.child('sites/xvideos').get()),
+                        'xnxx'      : bool(ref.child('sites/xnxx').get()),
+                        'pornhub'   : bool(ref.child('sites/pornhub').get()),
+                        'spankbang' : bool(ref.child('sites/spankbang').get()),
+                        'eporner'   : bool(ref.child('sites/eporner').get()),
+                        'sex'       : bool(ref.child('sites/sex').get()),
+                        'hqporner'  : bool(ref.child('sites/hqporner').get()),
+                    }
                 }
             except Exception as e:
                 return None
@@ -29,7 +38,7 @@ class FirebaseConnection:
 
     def initialize_connection(self):
         try:
-            cred = credentials.Certificate(self.service_key_path)
+            cred = credentials.Certificate(self.service_key)
             return firebase_admin.initialize_app(cred,
                                                  {'databaseURL': self.db_url},
                                                  self.app_name)

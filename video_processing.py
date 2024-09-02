@@ -31,8 +31,10 @@ class Video:
         return 120
 
   def convert_thumb_to_vid(self,url):
-    base_url = re.sub(r'/thumbs(169)?(xnxx)?((l*)|(poster))/', '/videopreview/', url[:url.rfind("/")])
-    return re.sub(r'(-\d+)_([\d]+)', r'_\2\1', base_url) + "_169.mp4"
+    base_url = re.sub(r'/thumbs(169)?(xnxx)?(l*|poster)/', '/videopreview/', url[:url.rfind("/")])
+    suffix = re.search(r'-(\d+)', base_url)
+    base_url = re.sub(r'-(\d+)', '', base_url) if suffix else base_url
+    return f"{base_url}_169{suffix.group(0) if suffix else ''}.mp4"
 
   def extract_id_from_iframe(self,iframe_string):
     match = re.search(r'https://www\.xvideos\.com/embedframe/([^"]+)', iframe_string)
@@ -52,8 +54,16 @@ class SearchConfig:
       self.max_attempts = firevalues.get('maxTentativas')
 
 class VideoSearcher:
-  def __init__(self, client, config,wpAPI,firebase_connection):
-      self.client = client
+  def __init__(self, clientes, config,wpAPI,firebase_connection):
+    
+      self.client_xvideos   = clientes.get('xvideos')
+      self.client_xnxx      = clientes.get('xnxx')
+      self.client_pornhub   = clientes.get('pornhub')
+      self.client_spankbang = clientes.get('spankbang')
+      self.client_eporner   = clientes.get('eporner')
+      self.client_sex       = clientes.get('sex')
+      self.client_hqporner  = clientes.get('hqporner')
+      
       self.config = config
       self.total_added = 0
       self.attempt = 1
@@ -76,7 +86,7 @@ class VideoSearcher:
 
           for term in self.config.terms:
               print(f"\n- Pesquisa por: {term}")
-              videos = self.client.search(term)
+              videos = self.client_xvideos.search(term)
               titles = []
               for _,video in zip(range(qty_search), videos):
                 #print(video.title)
