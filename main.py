@@ -13,9 +13,9 @@ load_dotenv()
 llm = Groq(model="llama-3.1-70b-versatile", api_key=os.getenv("GROQ_API_KEY"))
 
 
-wpurl = 'https://testes-wp.coroasafadas.com.br/'
-wpuser = 'admin'
-wppass = os.getenv("WORDPRESS_PASS")
+wpurl = 'https://coroasafadas.com.br/'
+wpuser = 'zeroescobar9'
+wppass = os.getenv("WP_PRODUCAO")
 wpAPI = WordpressAPI(wpurl,wpuser,wppass,llm)
 
 
@@ -24,7 +24,7 @@ firebase_connection = FirebaseConnection('servicekey.json', 'https://alimentsite
 default_config = SearchConfig(
     firevalues    = firebase_connection.getOnlineValues(),
     defaultValues = {
-        'termos':['coroas', 'coroa', 'madura', 'madura amadora', 'madura rica'],
+        'termos':['coroa gostosa','madura','madura amador','madura rica','cougar','coroa peituda','cougar slutty','madura culona','madura tetona'],
         'minimoDiario':2,
         'qtyPorTermo':1,
         'maxTentativas':6,
