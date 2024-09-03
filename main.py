@@ -2,7 +2,7 @@
 from llama_index.llms.groq import Groq
 import os
 from xvideos_api.xvideos_api import Client as clientxvideos
-from xnxx_api import Client as clientxnxx
+#from xnxx_api import Client as clientxnxx
 from firebase_connection import FirebaseConnection
 from wordpress_controller import WordpressAPI
 from video_processing import VideoSearcher, SearchConfig
@@ -41,7 +41,7 @@ default_config = SearchConfig(
 )
 clientes = {
     'xvideos':clientxvideos(),
-    'xnxx':clientxnxx(),
+    #'xnxx':clientxnxx(),
 }
 
 video_searcher = VideoSearcher(clientes, default_config,wpAPI,firebase_connection)
