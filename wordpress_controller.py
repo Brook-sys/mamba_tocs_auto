@@ -1,8 +1,10 @@
 import requests
 import base64
 
+
+
 class WordpressAPI:
-  def __init__(self,url,user,password,LLM_groq) -> None:
+  def __init__(self,url,user,password) -> None:
     self.wordpress_credentials = user + ':' + password
     self.wordpress_token = base64.b64encode(self.wordpress_credentials.encode())
     self.wordpress_header = {'Authorization': 'Basic ' + self.wordpress_token.decode('utf-8')}
@@ -10,7 +12,6 @@ class WordpressAPI:
     self.epposts = self.url + '/posts'
     self.eptags = self.url + '/tags'
     self.epmedia = self.url + '/media'
-    self.llm_groq = LLM_groq
 
   def postImageLink(self,linkimage,nome):
 
@@ -62,35 +63,25 @@ class WordpressAPI:
     for tag in video.tags:
       tags.append(self.get_tag_id_by_name(tag))
 
-    ia_desc = str(self.llm_groq.complete(f"crie uma descrição para um video adulto tendo em vista SEO(Search Optimization Engine) para ranquear melhor no google como um site de videos de coroas, seja original e tente não parecer uma ia, escreva de forma vulgar e apelativa para o lado erotico com palavras brasileiras de cunho erotico, com base no titulo: '{video.title}' e nas tags {str(video.tags)} apenas mostre a descrição sem conteudos adicionais")).replace('"','').replace("'","")
-    ia_title = str(self.llm_groq.complete(f"crie um titulo novo diferente do original para um video adulto tendo em vista SEO(Search Optimization Engine) para ranquear melhor no google como um site de videos de coroas, tente não parecer uma ia, escreva de forma vulgar e apelativa para o lado erotico com palavras brasileiras de cunho erotico, com base no titulo original: '{video.title}' e nas tags {str(video.tags)} apenas mostre o titulo gerado sem conteudos adicionais")).replace('"','').replace("'","")
-    ia_meta_desc = str(self.llm_groq.complete(f"crie uma meta descrição para um video adulto tendo em vista SEO(Search Optimization Engine) para ranquear melhor no google como um site de videos de coroas, tente não parecer uma ia, escreva de forma vulgar e apelativa para o lado erotico com palavras brasileiras de cunho erotico, com base no titulo: '{str(ia_title)}' e no conteudo {str(ia_desc)} apenas mostre a meta descrição gerada sem conteudos adicionais")).replace('"','').replace("'","")
-    ia_image_alt = str(self.llm_groq.complete(f"crie uma descrição para uma imagem para um video adulto tendo em vista SEO(Search Optimization Engine) para ranquear melhor no google como um site de videos de coroas, tente não parecer uma ia, escreva de forma vulgar e apelativa para o lado erotico com palavras brasileiras de cunho erotico, com base no titulo: '{str(ia_title)}' e nas tags {str(video.tags)} apenas mostre a descrição de video gerada sem conteudos adicionais")).replace('"','').replace("'","")
-    ia_keywords = str(self.llm_groq.complete(f"crie de 3 a 10 palavras-chave separados por virgula para um video adulto tendo em vista SEO para ranquear melhor no google como um site de videos de coroas, escreva de forma vulgar e apelativa para o lado erotico com palavras brasileiras de cunho erotico, com base no titulo: '{str(ia_title)}' e nas tags {str(video.tags)} apenas mostre as palavras-chave geradas separados por virgula  sem conteudos adicionais")).replace('"','').replace("'","")
-    
     hosp_thumb, id_thumb = self.postImageLink(video.thumbnail_url,video.id+'_'+video.slug)
-    xv_cdn = f'https://videoscdn.net/player/?id={video.id}'
-    embed_xv_cdn = f'<iframe src="{xv_cdn}" frameborder=0 width=510 height=400 scrolling=no allowfullscreen=allowfullscreen></iframe>'
     data = {
-    'title'           : ia_title,
+    'title'           : video.title,
     'status'          : 'publish',
     'slug'            : video.slug,
     'tags'            : ','.join(map(str,tags)),
-    'content'         : f'<img src="{hosp_thumb}" alt="{ia_image_alt}"> <br> <p style="text-align: center;">{ia_desc}</p><br>',
+    'content'         : f'<img src="{hosp_thumb}" alt="{video.image_alt}"> <br> <p style="text-align: center;">{video.desc}</p><br>',
     'format'          : 'video',
     'featured_media'  : id_thumb,
-
-
     'meta':{
-        'keywords'        : ia_keywords,
-        'description'     : ia_meta_desc,
-        'embed'           : embed_xv_cdn,
+        'keywords'        : video.keywords,
+        'description'     : video.meta_desc,
+        'embed'           : video.embed_iframe,
         'video_url'       : video.video_url,
         'trailer_url'     : video.trailer_url,
         'thumb'           : hosp_thumb,
         'duration'        : video.length,
         'xv_id'           : video.id,
-        'schema_embed'    : xv_cdn,
+        'schema_embed'    : video.embed_url,
         'schema_duration' : f'PT{video.length}S',
 
         },}

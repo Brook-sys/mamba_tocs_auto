@@ -1,5 +1,3 @@
-
-from llama_index.llms.groq import Groq
 import os
 import sys
 from xvideos_api.xvideos_api import Client as clientxvideos
@@ -7,16 +5,16 @@ from xvideos_api.xvideos_api import Client as clientxvideos
 from firebase_connection import FirebaseConnection
 from wordpress_controller import WordpressAPI
 from video_processing import VideoSearcher, SearchConfig
-from dotenv import load_dotenv
-load_dotenv()
-
 
 inColab = "google.colab" in sys.modules
-mode = os.getenv('MODE', 'production') 
-
-userdata = __import__('google.colab.userdata', fromlist=['userdata']) if inColab else None
-
-groq_api_key =os.getenv("GROQ_API_KEY")
+userdata= None
+if inColab:
+  userdata = __import__('google.colab.userdata', fromlist=['userdata'])
+else:
+  from dotenv import load_dotenv
+  load_dotenv()
+groq_api_key = userdata.get("GROQ_API_KEY") if userdata else os.getenv("GROQ_API_KEY")
+mode = userdata.get('MODE') if userdata else os.getenv('MODE', 'production') 
 prefixMode = "DEBUG" if mode == "debug" else "PROD"
 
 wpuser = userdata.get(f'WP_USER_{prefixMode}') if userdata else os.getenv(f'WP_USER_{prefixMode}')
@@ -25,8 +23,7 @@ wpurl = userdata.get(f'WP_URL_{prefixMode}') if userdata else os.getenv(f'WP_URL
 
 
 
-llm = Groq(model="llama-3.1-70b-versatile", api_key=groq_api_key)
-wpAPI = WordpressAPI(wpurl,wpuser,wppass,llm)
+wpAPI = WordpressAPI(wpurl,wpuser,wppass)
 firebase_connection = FirebaseConnection('servicekey.json', 'https://alimentsite-86639-default-rtdb.firebaseio.com/', 'connsite')
 
 default_config = SearchConfig(
