@@ -29,10 +29,10 @@ class WordpressAPI:
         # Obter o link da imagem hospedada no WordPress
         image_data = response.json()
         hosted_image_url = image_data['guid']['rendered']
-        print(f'Imagem hospedada com sucesso: {hosted_image_url}')
+        print(f'\n---\nImagem hospedada com sucesso: {hosted_image_url}')
         return hosted_image_url, image_data['id']
     else:
-        print(f'Erro ao hospedar a imagem: {response.status_code}')
+        print(f'\n---\nErro ao hospedar a imagem: {response.status_code}')
         print(response.text)
         return None
 

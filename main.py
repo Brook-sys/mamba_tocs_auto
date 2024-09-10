@@ -35,7 +35,7 @@ default_config = SearchConfig(
         'maxTentativas':6,
         'sites':{
             'xvideos':True,
-            'xnxx':True,
+            'xnxx':False,
             'pornhub':False,
             'spankbang':False,
             'eporner':False,

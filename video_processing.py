@@ -70,6 +70,7 @@ class xvideosVideo:
     pattern = r'/video\.([a-zA-Z0-9_]+)\/'
     match = re.search(pattern, url)
     return match.group(1) if match else ''
+  
 class Video:
   
   def __init__(self, title='',embed_url='',embed_iframe='',slug='',video_url='',thumbnail_url='',trailer_url='',length=120,url='',id='',tags=[]) -> None:
@@ -100,18 +101,16 @@ class Video:
     self.meta_desc = str(self.llm_groq.complete(f"crie uma meta descrição para um video adulto tendo em vista SEO(Search Optimization Engine) para ranquear melhor no google como um site de videos de coroas, tente não parecer uma ia, escreva de forma vulgar e apelativa para o lado erotico com palavras brasileiras de cunho erotico, com base no titulo: '{str(self.title)}' e no conteudo {str(self.desc)} apenas mostre a meta descrição gerada sem conteudos adicionais")).replace('"','').replace("'","")
     self.image_alt = str(self.llm_groq.complete(f"crie uma descrição para uma imagem para um video adulto tendo em vista SEO(Search Optimization Engine) para ranquear melhor no google como um site de videos de coroas, tente não parecer uma ia, escreva de forma vulgar e apelativa para o lado erotico com palavras brasileiras de cunho erotico, com base no titulo: '{str(self.title)}' e nas tags {str(self.tags)} apenas mostre a descrição de video gerada sem conteudos adicionais")).replace('"','').replace("'","")
     self.keywords = str(self.llm_groq.complete(f"crie de 3 a 10 palavras-chave separados por virgula para um video adulto tendo em vista SEO para ranquear melhor no google como um site de videos de coroas, escreva de forma vulgar e apelativa para o lado erotico com palavras brasileiras de cunho erotico, com base no titulo: '{str(self.title)}' e nas tags {str(self.tags)} apenas mostre as palavras-chave geradas separados por virgula  sem conteudos adicionais")).replace('"','').replace("'","")
+
 class SearchConfig:
   def __init__(self,firevalues, defaultValues):
-    if not firevalues:
-      self.terms = defaultValues.get('termos')
-      self.min_daily = defaultValues.get('minimoDiario')
-      self.search_qty = defaultValues.get('qtyPorTermo')
-      self.max_attempts = defaultValues.get('maxTentativas')
-    else:
-      self.terms = firevalues.get('termos')
-      self.min_daily = firevalues.get('minimoDiario')
-      self.search_qty = firevalues.get('qtyPorTermo')
-      self.max_attempts = firevalues.get('maxTentativas')
+    source = firevalues or defaultValues
+
+    self.terms          = source.get('termos')
+    self.min_daily      = source.get('minimoDiario')
+    self.search_qty     = source.get('qtyPorTermo')
+    self.max_attempts   = source.get('maxTentativas')
+
 class VideoSearcher:
   def __init__(self, clientes, config,wpAPI,firebase_connection):
     
@@ -142,27 +141,21 @@ class VideoSearcher:
           qty_search = self.config.search_qty * multiplier
           videolist = []
           term_results = {}
-
+          total_added_tentativa = 0
           for term in self.config.terms:
               print(f"\n- Pesquisa por: {term}")
               videos = self.client_xvideos.search(term)
               titles = []
               for _,video in zip(range(qty_search), videos):
                 titles.append(video.title)
-
-                video_obj = xvideosVideo(
-                  xv_origin=video
-                  )
+                video_obj = xvideosVideo(xv_origin=video)
                 print(video_obj.title)
                 videolist.append(video_obj.video)
-
-
               term_results[self.format_key(term)] = titles
-
-          total_added_tentativa = self.wpController.add_videos(videolist)
+              total_added_tentativa += self.wpController.add_videos(videolist)
           self.total_added += total_added_tentativa
 
-          print(f'\n---\nResultado Rodada:\n   -Videos: {len(videolist)}\n   -Adicionados: {total_added_tentativa}\n---\n')
+          print(f'\n---\nResultado Rodada:\n   -Videos: {len(videolist)}\n   -Adicionados: {total_added_tentativa}')
 
           self.rounds[f'rodada{self.attempt}'] = {
               'qty_adicionado': total_added_tentativa,
