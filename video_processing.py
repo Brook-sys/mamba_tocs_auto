@@ -88,7 +88,7 @@ class Video:
     
     self.llm = Groq(model="llama-3.1-70b-versatile", api_key=groq_api_key)
     self.desc = ''
-    self.title = ''
+    self.title = self.title
     self.meta_desc = ''
     self.image_alt = ''
     self.keywords = ''

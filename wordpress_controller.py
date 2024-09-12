@@ -29,10 +29,10 @@ class WordpressAPI:
         # Obter o link da imagem hospedada no WordPress
         image_data = response.json()
         hosted_image_url = image_data['guid']['rendered']
-        print(f'\n---\nImagem hospedada com sucesso: {hosted_image_url}')
+        print(f'\n✅ Imagem hospedada com sucesso: {hosted_image_url}')
         return hosted_image_url, image_data['id']
     else:
-        print(f'\n---\nErro ao hospedar a imagem: {response.status_code}')
+        print(f'\n❌ Erro ao hospedar a imagem: {response.status_code}')
         print(response.text)
         return None
 
@@ -88,7 +88,7 @@ class WordpressAPI:
 
     response = requests.post(self.epposts,headers=self.wordpress_header, json=data)
     if response.status_code == 201:
-      print(f'✅ Video Adicionado \n   titulo-xv: {video.title} -- url-xv: {video.url} \n')
+      print(f'\n✅ Video Adicionado \n   titulo-xv: {video.title} -- url-xv: {video.url}')
       return True
     else:
       print(f'Erro  + {dict(video)}')
@@ -118,11 +118,11 @@ class WordpressAPI:
         if video.id in idExists:
           allvidsfilter = {video.get('meta', {}).get('xv_id'): video for video in vidExists}
           thevid = allvidsfilter.get(video.id)
-          print(f'❌ Não Adicionado pois ja consta \n   titulo-xv: {video.title} -- url-xv: {video.url} \n   titulo-wp: {thevid.get("title").get("rendered")} -- url-wp: {thevid.get("link")}\n')
+          print(f'\n❌ Não Adicionado pois ja consta \n   titulo-xv: {video.title} -- url-xv: {video.url} \n   titulo-wp: {thevid.get("title").get("rendered")} -- url-wp: {thevid.get("link")}')
         else:
           if self.__create_video(video):
             qty_vids_added +=1
 
       except Exception as e:
-        print(f'❌❌❌ Não Adicionado pois ocorreu um erro \n{e}\n   titulo-xv: {video.title} -- url-xv: {video.url} ')
+        print(f'\n❌❌❌ Não Adicionado pois ocorreu um erro \n{e}\n   titulo-xv: {video.title} -- url-xv: {video.url} ')
     return qty_vids_added
