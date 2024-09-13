@@ -159,8 +159,6 @@ class VideoSearcher:
                 self.final_report()
                 return
 
-          print(f'\n---\nResultado Rodada:\n   -Videos: {len(videolist)}\n   -Adicionados: {total_added_tentativa}')
-
           self.rounds[f'rodada{self.attempt}'] = {
               'qty_adicionado': total_added_tentativa,
               'qty_videos_analisados': len(videolist),
