@@ -31,7 +31,7 @@ class FirebaseConnection:
                         'hqporner'  : bool(ref.child('sites/hqporner').get()),
                     }
                 }
-            except Exception as e:
+            except:
                 return None
         else:
             return None
@@ -51,7 +51,6 @@ class FirebaseConnection:
                 return None
 
     def is_connected(self):
-        """Verifica se a conexão com o Firebase foi bem-sucedida."""
         return self.app is not None
 
     def report(self, data):

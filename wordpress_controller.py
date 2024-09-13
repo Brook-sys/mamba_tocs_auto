@@ -1,8 +1,5 @@
 import requests
 import base64
-
-
-
 class WordpressAPI:
   def __init__(self,url,user,password) -> None:
     self.wordpress_credentials = user + ':' + password
@@ -36,6 +33,37 @@ class WordpressAPI:
         print(response.text)
         return None
 
+  def identify_duplicate_posts(self):
+    posts = self.get_wp_posts()
+
+    unique_posts = {}
+    duplicate_posts = []
+
+    for post in posts:
+      xv_id = post.get('meta', {}).get('xv_id')
+      if not xv_id:
+        print('notem')
+        continue
+
+      if xv_id not in unique_posts:
+        unique_posts[xv_id] = post 
+        print(f'unic: {xv_id}')
+      else:
+        duplicate_posts.append(post)
+        print(f'           dupl: {xv_id}')
+
+    for duplicate in duplicate_posts:
+      post_id = duplicate['id']
+      
+      '''
+      response = requests.delete(f"{self.epposts}/{post_id}")
+      
+      if response.status_code == 200:
+        print(f"Post com ID {post_id} foi deletado.")
+      else:
+        print(f"Falha ao deletar o post com ID {post_id}. Status code: {response.status_code}")
+      '''
+      print(f"Deleção de posts duplicados concluída. Total de duplicados removidos: {len(duplicate_posts)}.")
 
   def get_wp_postsss(self):
     response = requests.get(self.epposts)
@@ -111,8 +139,6 @@ class WordpressAPI:
     vidExists = self.get_wp_posts()
     idExists = [video.get('meta', {}).get('xv_id') for video in vidExists]
     qty_vids_added = 0
-
-
     for video in videos:
       try:
         if video.id in idExists:
@@ -122,7 +148,6 @@ class WordpressAPI:
         else:
           if self.__create_video(video):
             qty_vids_added +=1
-
       except Exception as e:
         print(f'\n❌❌❌ Não Adicionado pois ocorreu um erro \n{e}\n   titulo-xv: {video.title} -- url-xv: {video.url} ')
     return qty_vids_added

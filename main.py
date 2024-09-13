@@ -16,11 +16,9 @@ else:
 groq_api_key = userdata.get("GROQ_API_KEY") if userdata else os.getenv("GROQ_API_KEY")
 mode = userdata.get('MODE') if userdata else os.getenv('MODE', 'production') 
 prefixMode = "DEBUG" if mode == "debug" else "PROD"
-
 wpuser = userdata.get(f'WP_USER_{prefixMode}') if userdata else os.getenv(f'WP_USER_{prefixMode}')
 wppass = userdata.get(f'WP_PASS_{prefixMode}') if userdata else os.getenv(f'WP_PASS_{prefixMode}')
 wpurl = userdata.get(f'WP_URL_{prefixMode}') if userdata else os.getenv(f'WP_URL_{prefixMode}')
-
 
 
 wpAPI = WordpressAPI(wpurl,wpuser,wppass)
@@ -29,9 +27,9 @@ firebase_connection = FirebaseConnection('servicekey.json', 'https://alimentsite
 default_config = SearchConfig(
     firevalues    = firebase_connection.getOnlineValues(),
     defaultValues = {
-        'termos':['coroa gostosa','madura','madura amador','madura rica','cougar','coroa peituda','cougar slutty','madura culona','madura tetona'],
+        'termos':['coroa gostosona','madura','madura amador','madura rica','cougar','coroa peituda','cougar slutty','madura culona','madura tetona'],
         'minimoDiario':2,
-        'qtyPorTermo':1,
+        'qtyPorTermo':5,
         'maxTentativas':6,
         'sites':{
             'xvideos':True,
@@ -44,6 +42,7 @@ default_config = SearchConfig(
         } 
     }
 )
+
 clientes = {
     'xvideos':clientxvideos(),
     #'xnxx':clientxnxx(),

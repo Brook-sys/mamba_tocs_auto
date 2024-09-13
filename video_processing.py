@@ -105,6 +105,7 @@ class Video:
 class SearchConfig:
   def __init__(self,firevalues, defaultValues):
     source = firevalues or defaultValues
+    source = defaultValues if mode == 'debug' else source
 
     self.terms          = source.get('termos')
     self.min_daily      = source.get('minimoDiario')
@@ -139,13 +140,13 @@ class VideoSearcher:
       multiplier = 1
       while True:
           qty_search = self.config.search_qty * multiplier
-          videolist = []
           term_results = {}
           total_added_tentativa = 0
           for term in self.config.terms:
               print(f"\n- Pesquisa por: {term}")
               videos = self.client_xvideos.search(term)
               titles = []
+              videolist = []
               for _,video in zip(range(qty_search), videos):
                 titles.append(video.title)
                 video_obj = xvideosVideo(xv_origin=video)
@@ -153,7 +154,10 @@ class VideoSearcher:
                 videolist.append(video_obj.video)
               term_results[self.format_key(term)] = titles
               total_added_tentativa += self.wpController.add_videos(videolist)
-          self.total_added += total_added_tentativa
+              self.total_added += total_added_tentativa
+              if self.total_added >= self.config.min_daily:
+                self.final_report()
+                return
 
           print(f'\n---\nResultado Rodada:\n   -Videos: {len(videolist)}\n   -Adicionados: {total_added_tentativa}')
 
@@ -163,7 +167,7 @@ class VideoSearcher:
               'termos': term_results,
           }
 
-          if self.total_added >= self.config.min_daily or self.attempt >= self.config.max_attempts:
+          if self.attempt >= self.config.max_attempts:
               self.final_report()
               break
           else:
