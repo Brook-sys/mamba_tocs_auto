@@ -19,7 +19,7 @@ prefixMode = "DEBUG" if mode == "debug" else "PROD"
 wpuser = userdata.get(f'WP_USER_{prefixMode}') if userdata else os.getenv(f'WP_USER_{prefixMode}')
 wppass = userdata.get(f'WP_PASS_{prefixMode}') if userdata else os.getenv(f'WP_PASS_{prefixMode}')
 wpurl = userdata.get(f'WP_URL_{prefixMode}') if userdata else os.getenv(f'WP_URL_{prefixMode}')
-
+print(f'{wpuser}:{wppass}--{wpurl}')
 
 wpAPI = WordpressAPI(wpurl,wpuser,wppass)
 firebase_connection = FirebaseConnection('servicekey.json', 'https://alimentsite-86639-default-rtdb.firebaseio.com/', 'connsite')
