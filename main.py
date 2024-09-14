@@ -20,10 +20,10 @@ prefixMode = "DEBUG" if mode == "debug" else "PROD"
 wpuser = userdata.get(f'WP_USER_{prefixMode}') if userdata else os.getenv(f'WP_USER_{prefixMode}')
 wppass = userdata.get(f'WP_PASS_{prefixMode}') if userdata else os.getenv(f'WP_PASS_{prefixMode}')
 wpurl = userdata.get(f'WP_URL_{prefixMode}') if userdata else os.getenv(f'WP_URL_{prefixMode}')
-current_time = datetime.datetime.now()
+init_time = datetime.datetime.now()
 
 
-print(f"-----------------------------------------------\nData: {current_time.strftime("%d/%m/%Y %H:%M:%S")}\n", )
+print(f"\n-----------------------------------------------\nInicio: {init_time.strftime("%d/%m/%Y %H:%M:%S")}\n", )
 
 wpAPI = WordpressAPI(wpurl,wpuser,wppass)
 firebase_connection = FirebaseConnection('servicekey.json', 'https://alimentsite-86639-default-rtdb.firebaseio.com/', 'connsite')
@@ -54,5 +54,5 @@ clientes = {
 
 video_searcher = VideoSearcher(clientes, default_config,wpAPI,firebase_connection)
 video_searcher.search_and_add_videos()
-
-print(f"-----------------------------------------------\n", )
+end_time = datetime.datetime.now()
+print(f"\nTermino:{end_time.strftime("%d/%m/%Y %H:%M:%S")}\n-----------------------------------------------\n", )
