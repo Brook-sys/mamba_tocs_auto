@@ -172,6 +172,14 @@ class VideoSearcher:
               multiplier *= 2
               self.attempt += 1
 
+  def add_a_video(self, urlvideo):
+    videolist = []
+    video = self.client_xvideos.get_video(urlvideo)
+    video_obj = xvideosVideo(xv_origin=video)
+    print(video_obj.title)
+    videolist.append(video_obj.video)
+    self.wpController.add_videos(videolist)
+
   def final_report(self):
       print(f'\n---\nResultado Final:\n    -Minimo Necessario: {self.config.min_daily}\n    -Qty Tentativas: {self.attempt}\n    -Qty total de Videos Adicionados: {self.total_added}\n---\n')
       final_result = {

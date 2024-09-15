@@ -59,9 +59,10 @@ class FirebaseConnection:
                 now = datetime.now()
                 timezone_offset = -3
                 adjusted_now = now + timedelta(hours=timezone_offset)
-                current_date = adjusted_now.strftime('%d-%m-%Y')
+                #current_date = adjusted_now.strftime('%d-%m-%Y')
                 timestamp = adjusted_now.strftime('%d-%m-%Y %H:%M:%S')
-                report_ref = db.reference(f"/relatorios/{current_date}/",
+                
+                report_ref = db.reference(f"/relatorios/{adjusted_now.year}/{adjusted_now.month}/{adjusted_now.day}",
                                           app=self.app)
                 data['timestamp'] = timestamp
                 report_ref.push(data)

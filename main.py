@@ -23,7 +23,7 @@ wpurl = userdata.get(f'WP_URL_{prefixMode}') if userdata else os.getenv(f'WP_URL
 init_time = datetime.datetime.now()
 
 
-print(f"\n-----------------------------------------------\nInicio: {init_time.strftime("%d/%m/%Y %H:%M:%S")}\n", )
+print(f"\n-----------------------------------------------\nInicio: {init_time.strftime('%d/%m/%Y %H:%M:%S')}\n", )
 
 wpAPI = WordpressAPI(wpurl,wpuser,wppass)
 firebase_connection = FirebaseConnection('servicekey.json', 'https://alimentsite-86639-default-rtdb.firebaseio.com/', 'connsite')
@@ -53,6 +53,7 @@ clientes = {
 }
 
 video_searcher = VideoSearcher(clientes, default_config,wpAPI,firebase_connection)
-video_searcher.search_and_add_videos()
+#video_searcher.search_and_add_videos()
+video_searcher.add_a_video("https://www.xvideos.com/video.uevliokc5d3/coroa_russa_gemendo_na_pica")
 end_time = datetime.datetime.now()
-print(f"\nTermino:{end_time.strftime("%d/%m/%Y %H:%M:%S")}\n-----------------------------------------------\n", )
+print(f"\nTermino:{end_time.strftime('%d/%m/%Y %H:%M:%S')}\n-----------------------------------------------\n", )
