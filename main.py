@@ -53,7 +53,7 @@ clientes = {
 }
 
 video_searcher = VideoSearcher(clientes, default_config,wpAPI,firebase_connection)
-#video_searcher.search_and_add_videos()
-video_searcher.add_a_video("https://www.xvideos.com/video.uevliokc5d3/coroa_russa_gemendo_na_pica")
+video_searcher.search_and_add_videos()
+#video_searcher.add_a_video("")
 end_time = datetime.datetime.now()
 print(f"\nTermino:{end_time.strftime('%d/%m/%Y %H:%M:%S')}\n-----------------------------------------------\n", )
