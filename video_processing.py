@@ -148,10 +148,13 @@ class VideoSearcher:
               titles = []
               videolist = []
               for _,video in zip(range(qty_search), videos):
-                titles.append(video.title)
-                video_obj = xvideosVideo(xv_origin=video)
-                print(video_obj.title)
-                videolist.append(video_obj.video)
+                try:
+                  titles.append(video.title)
+                  video_obj = xvideosVideo(xv_origin=video)
+                  print(video_obj.title)
+                  videolist.append(video_obj.video)
+                except Exception as e:
+                  print(f"Erro ao criar video '{video.title}': {e}")
               term_results[self.format_key(term)] = titles
               total_added_tentativa += self.wpController.add_videos(videolist)
               self.total_added += total_added_tentativa
