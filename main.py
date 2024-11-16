@@ -56,4 +56,4 @@ video_searcher = VideoSearcher(clientes, default_config,wpAPI,firebase_connectio
 video_searcher.search_and_add_videos()
 #video_searcher.add_a_video("")
 end_time = datetime.datetime.now()
-print(f"\nTermino:{end_time.strftime('%d/%m/%Y %H:%M:%S')}\n-----------------------------------------------\n", )
+print(f"\nTermino: {end_time.strftime('%d/%m/%Y %H:%M:%S')}\n-----------------------------------------------\n", )
