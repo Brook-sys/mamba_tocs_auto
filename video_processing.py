@@ -26,7 +26,7 @@ class xvideosVideo:
     self.url = xv_url if xv_url else xv_origin.url
     self.id = self.extract_id_from_url(self.url)
     self.tags = tags if tags else xv_origin.tags
-    self.embed_url = f'https://videoscdn.net/player/?id={self.id}'
+    self.embed_url = f'https://videoscdn.online/{self.id}'
     embed_xv_cdn = f'<iframe src="{self.embed_url}" frameborder=0 width=510 height=400 scrolling=no allowfullscreen=allowfullscreen></iframe>'
     self.embed_iframe = embed if embed else embed_xv_cdn
     
