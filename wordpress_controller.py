@@ -1,5 +1,6 @@
 import requests
 import base64
+import time
 class WordpressAPI:
   def __init__(self,url,user,password) -> None:
     self.wordpress_credentials = user + ':' + password
@@ -71,19 +72,34 @@ class WordpressAPI:
     return response_json
 
   def get_wp_posts(self):
-    posts, page, per_page = [], 1, 100
-
+    posts = []
+    page = 1
+    per_page = 100
+    total_pages = None
     while True:
         response = requests.get(f"{self.epposts}?per_page={per_page}&page={page}")
         if response.status_code != 200:
             print(f"Failed to retrieve posts. Status code: {response.status_code}")
             break
+        if total_pages is None:
+            try:
+                total_pages = int(response.headers.get('X-WP-TotalPages', 0))
+                if total_pages == 0:
+                    print("Total de páginas não encontrado ou é 0. Verifique a API.")
+                    break
+                print(f"Total de páginas encontradas: {total_pages}")
+            except ValueError:
+                print("Cabeçalho X-WP-TotalPages inválido. Verifique a configuração do servidor.")
+                break
         response_json = response.json()
         posts.extend(response_json)
-        if len(response_json) < per_page:
+        print(f"Posts obtidos na página {page}: {len(response_json)}")
+        if page >= total_pages:
             break
         page += 1
-    return posts
+        time.sleep(0.5)  # Ajuste conforme necessário
+    print(f"Total de posts obtidos: {len(posts)}")
+    return posts if posts else None
 
   def __create_video(self,video):
 
