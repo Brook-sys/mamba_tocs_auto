@@ -71,35 +71,46 @@ class WordpressAPI:
     response_json = response.json()
     return response_json
 
+  def get_wp_total_pages(self,retries=0):
+    if retries >= 4:
+      print('Erro ao obter total de páginas. Máximo de tentativas excedido.')
+      return None
+    else:
+      retries += 1
+    try:
+        response = requests.get(self.epposts, timeout=10)
+        response.raise_for_status()  # Lança exceção para erros HTTP
+        total_pages_header = response.headers.get('X-WP-TotalPages')
+        if not total_pages_header:
+            print("Cabeçalho X-WP-TotalPages não encontrado. Verifique a API.")
+            raise ValueError
+        return int(total_pages_header)
+    except requests.exceptions.RequestException as e:
+        print(f"Erro ao obter total de páginas: {e}")
+        return self.get_wp_total_pages(retries)
+    except ValueError:
+        print(f"Cabeçalho X-WP-TotalPages inválido: {response.headers.get('X-WP-TotalPages')}. Verifique a configuração do servidor.")
+        return self.get_wp_total_pages(retries)
   def get_wp_posts(self):
     posts = []
     page = 1
     per_page = 100
-    total_pages = None
+    total_pages = self.get_wp_total_pages()
     while True:
         response = requests.get(f"{self.epposts}?per_page={per_page}&page={page}")
         if response.status_code != 200:
             print(f"Failed to retrieve posts. Status code: {response.status_code}")
-            break
-        if total_pages is None:
-            try:
-                total_pages = int(response.headers.get('X-WP-TotalPages', 0))
-                if total_pages == 0:
-                    print("Total de páginas não encontrado ou é 0. Verifique a API.")
-                    break
-                print(f"Total de páginas encontradas: {total_pages}")
-            except ValueError:
-                print("Cabeçalho X-WP-TotalPages inválido. Verifique a configuração do servidor.")
-                break
-        response_json = response.json()
-        posts.extend(response_json)
-        print(f"Posts obtidos na página {page}: {len(response_json)}")
-        if page >= total_pages:
-            break
-        page += 1
-        time.sleep(0.5)  # Ajuste conforme necessário
+            time.sleep(2)
+        else:
+          response_json = response.json()
+          posts.extend(response_json)
+          print(f"Posts obtidos na página {page}: {len(response_json)}")
+          if page >= total_pages:
+              break
+          page += 1
+          time.sleep(0.5)  # Ajuste conforme necessário
     print(f"Total de posts obtidos: {len(posts)}")
-    return posts if posts else None
+    return posts 
 
   def __create_video(self,video):
 
@@ -162,6 +173,7 @@ class WordpressAPI:
           thevid = allvidsfilter.get(video.id)
           print(f'\n❌ Não Adicionado pois ja consta \n   titulo-xv: {video.title} -- url-xv: {video.url} \n   titulo-wp: {thevid.get("title").get("rendered")} -- url-wp: {thevid.get("link")}')
         else:
+          video.getIaTexts()
           if self.__create_video(video):
             qty_vids_added +=1
       except Exception as e:

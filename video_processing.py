@@ -94,7 +94,7 @@ class Video:
     self.meta_desc = ''
     self.image_alt = ''
     self.keywords = ''
-    self.getIaTexts() if not mode == 'debug' else None
+    #self.getIaTexts() if not mode == 'debug' else None
     
   def getIaTexts(self):
     with open("localprompts.json", "r") as f:
@@ -105,6 +105,7 @@ class Video:
         self.meta_desc = self.exec_prompt(prompts["meta_descricao"].format(titulo=self.title, descricao=self.desc))
         self.image_alt = self.exec_prompt(prompts["imagem_alt"].format(titulo=self.title, tags=str(self.tags)))
         self.keywords = self.exec_prompt(prompts["palavras_chave"].format(titulo=self.title, tags=str(self.tags)))
+        #print(f'\n\n------\n\n{self.title}\n\n{self.desc}\n\n{self.meta_desc}\n\n{self.image_alt}\n\n{self.keywords}\n\n------\n\n')
     except Exception as e:
         print(f"Erro na chamada da API: {e}")
         time.sleep(60) # Pausa de 1 minuto em caso de erro
@@ -114,11 +115,11 @@ class Video:
     time.sleep(2)
     return str(self.llm.complete(prompt)).replace('"','').replace("'","")
 class SearchConfig:
-  def __init__(self,firevalues, defaultValues):
+  def __init__(self,firevalues):
     self.pathDefaultValues  = 'defaultvalues.json'
     self.defaultvalues      = self.load_default_values(self.pathDefaultValues)
-    self.source             = firevalues or defaultValues
-    self.source             = defaultValues if mode == 'debug' else self.source
+    self.source             = firevalues or self.defaultvalues
+    self.source             = self.defaultvalues if mode == 'debug' else self.source
     self.terms              = self.source.get('termos')
     self.min_daily          = self.source.get('minimoDiario')
     self.search_qty         = self.source.get('qtyPorTermo')
