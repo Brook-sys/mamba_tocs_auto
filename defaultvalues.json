@@ -1,0 +1,23 @@
+{
+    "termos"        :   ["coroa gostosona",
+                        "madura",
+                        "madura amador",
+                        "madura rica",
+                        "cougar",
+                        "coroa peituda",
+                        "cougar slutty",
+                        "madura culona",
+                        "madura tetona"],
+    "minimoDiario"  :   2,
+    "qtyPorTermo"   :   5,
+    "maxTentativas" :   6,
+    "sites"         :   {
+        "xvideos"   :   true, 
+        "xnxx"      :   false,
+        "pornhub"   :   false,
+        "spankbang" :   false,
+        "eporner"   :   false,
+        "sex"       :   false,
+        "hqporner"  :   false
+    } 
+}

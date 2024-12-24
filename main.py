@@ -14,12 +14,18 @@ if inColab:
 else:
   from dotenv import load_dotenv
   load_dotenv()
-groq_api_key = userdata.get("GROQ_API_KEY") if userdata else os.getenv("GROQ_API_KEY")
-mode = userdata.get('MODE') if userdata else os.getenv('MODE', 'production') 
-prefixMode = "DEBUG" if mode == "debug" else "PROD"
-wpuser = userdata.get(f'WP_USER_{prefixMode}') if userdata else os.getenv(f'WP_USER_{prefixMode}')
-wppass = userdata.get(f'WP_PASS_{prefixMode}') if userdata else os.getenv(f'WP_PASS_{prefixMode}')
-wpurl = userdata.get(f'WP_URL_{prefixMode}') if userdata else os.getenv(f'WP_URL_{prefixMode}')
+
+def get_env_var(key, default=None):
+    return userdata.get(key) if inColab else os.getenv(key, default)
+
+groq_api_key = get_env_var("GROQ_API_KEY")
+mode = get_env_var("MODE", "production")
+prefix_mode = "DEBUG" if mode == "debug" else "PROD"
+
+wpuser = get_env_var(f'WP_USER_{prefix_mode}')
+wppass = get_env_var(f'WP_PASS_{prefix_mode}')
+wpurl = get_env_var(f'WP_URL_{prefix_mode}')
+
 init_time = datetime.datetime.now()
 
 
@@ -28,24 +34,7 @@ print(f"\n-----------------------------------------------\nInicio: {init_time.st
 wpAPI = WordpressAPI(wpurl,wpuser,wppass)
 firebase_connection = FirebaseConnection('servicekey.json', 'https://alimentsite-86639-default-rtdb.firebaseio.com/', 'connsite')
 
-default_config = SearchConfig(
-    firevalues    = firebase_connection.getOnlineValues(),
-    defaultValues = {
-        'termos':['coroa gostosona','madura','madura amador','madura rica','cougar','coroa peituda','cougar slutty','madura culona','madura tetona'],
-        'minimoDiario':2,
-        'qtyPorTermo':5,
-        'maxTentativas':6,
-        'sites':{
-            'xvideos':True,
-            'xnxx':False,
-            'pornhub':False,
-            'spankbang':False,
-            'eporner':False,
-            'sex':False,
-            'hqporner':False
-        } 
-    }
-)
+default_config = SearchConfig(firebase_connection.getOnlineValues())
 
 clientes = {
     'xvideos':clientxvideos(),

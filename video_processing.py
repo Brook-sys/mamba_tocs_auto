@@ -1,5 +1,7 @@
+import json
 import re
 import unicodedata
+import time
 from llama_index.llms.groq import Groq
 import sys
 import os
@@ -95,22 +97,39 @@ class Video:
     self.getIaTexts() if not mode == 'debug' else None
     
   def getIaTexts(self):
-    
-    self.desc = str(self.llm.complete(f"crie uma descrição para um video adulto tendo em vista SEO(Search Optimization Engine) para ranquear melhor no google como um site de videos de coroas, seja original e tente não parecer uma ia, escreva de forma vulgar e apelativa para o lado erotico com palavras brasileiras de cunho erotico, com base no titulo: '{self.title}' e nas tags {str(self.tags)} apenas mostre a descrição sem conteudos adicionais")).replace('"','').replace("'","")
-    self.title = str(self.llm.complete(f"crie um titulo novo diferente do original para um video adulto tendo em vista SEO(Search Optimization Engine) para ranquear melhor no google como um site de videos de coroas, tente não parecer uma ia, escreva de forma vulgar e apelativa para o lado erotico com palavras brasileiras de cunho erotico, com base no titulo original: '{self.title}' e nas tags {str(self.tags)} apenas mostre o titulo gerado sem conteudos adicionais")).replace('"','').replace("'","")
-    self.meta_desc = str(self.llm.complete(f"crie uma meta descrição para um video adulto tendo em vista SEO(Search Optimization Engine) para ranquear melhor no google como um site de videos de coroas, tente não parecer uma ia, escreva de forma vulgar e apelativa para o lado erotico com palavras brasileiras de cunho erotico, com base no titulo: '{str(self.title)}' e no conteudo {str(self.desc)} apenas mostre a meta descrição gerada sem conteudos adicionais")).replace('"','').replace("'","")
-    self.image_alt = str(self.llm.complete(f"crie uma descrição para uma imagem para um video adulto tendo em vista SEO(Search Optimization Engine) para ranquear melhor no google como um site de videos de coroas, tente não parecer uma ia, escreva de forma vulgar e apelativa para o lado erotico com palavras brasileiras de cunho erotico, com base no titulo: '{str(self.title)}' e nas tags {str(self.tags)} apenas mostre a descrição de video gerada sem conteudos adicionais")).replace('"','').replace("'","")
-    self.keywords = str(self.llm.complete(f"crie de 3 a 10 palavras-chave separados por virgula para um video adulto tendo em vista SEO para ranquear melhor no google como um site de videos de coroas, escreva de forma vulgar e apelativa para o lado erotico com palavras brasileiras de cunho erotico, com base no titulo: '{str(self.title)}' e nas tags {str(self.tags)} apenas mostre as palavras-chave geradas separados por virgula  sem conteudos adicionais")).replace('"','').replace("'","")
+    with open("localprompts.json", "r") as f:
+        prompts = json.load(f)
+    try:
+        self.desc = self.exec_prompt(prompts["descricao"].format(titulo=self.title, tags=str(self.tags)))
+        self.title = self.exec_prompt(prompts["titulo"].format(titulo=self.title, tags=str(self.tags)))
+        self.meta_desc = self.exec_prompt(prompts["meta_descricao"].format(titulo=self.title, descricao=self.desc))
+        self.image_alt = self.exec_prompt(prompts["imagem_alt"].format(titulo=self.title, tags=str(self.tags)))
+        self.keywords = self.exec_prompt(prompts["palavras_chave"].format(titulo=self.title, tags=str(self.tags)))
+    except Exception as e:
+        print(f"Erro na chamada da API: {e}")
+        time.sleep(60) # Pausa de 1 minuto em caso de erro
+        return self.getIaTexts() 
 
+  def exec_prompt(self,prompt):
+    time.sleep(2)
+    return str(self.llm.complete(prompt)).replace('"','').replace("'","")
 class SearchConfig:
   def __init__(self,firevalues, defaultValues):
-    source = firevalues or defaultValues
-    source = defaultValues if mode == 'debug' else source
-
-    self.terms          = source.get('termos')
-    self.min_daily      = source.get('minimoDiario')
-    self.search_qty     = source.get('qtyPorTermo')
-    self.max_attempts   = source.get('maxTentativas')
+    self.pathDefaultValues  = 'defaultvalues.json'
+    self.defaultvalues      = self.load_default_values(self.pathDefaultValues)
+    self.source             = firevalues or defaultValues
+    self.source             = defaultValues if mode == 'debug' else self.source
+    self.terms              = self.source.get('termos')
+    self.min_daily          = self.source.get('minimoDiario')
+    self.search_qty         = self.source.get('qtyPorTermo')
+    self.max_attempts       = self.source.get('maxTentativas')
+  def load_default_values(self,file_path):
+    try:
+        with open(file_path, "r", encoding="utf-8") as file:
+            return json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        print(f"Erro ao carregar o arquivo JSON: {e}")
+        return None
 
 class VideoSearcher:
   def __init__(self, clientes, config,wpAPI,firebase_connection):
