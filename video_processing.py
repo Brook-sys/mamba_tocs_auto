@@ -97,6 +97,7 @@ class Video:
     #self.getIaTexts() if not mode == 'debug' else None
     
   def getIaTexts(self):
+    
     with open("localprompts.json", "r") as f:
         prompts = json.load(f)
     try:

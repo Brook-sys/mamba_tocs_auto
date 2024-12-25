@@ -1,6 +1,7 @@
 import requests
 import base64
 import time
+import traceback
 class WordpressAPI:
   def __init__(self,url,user,password) -> None:
     self.wordpress_credentials = user + ':' + password
@@ -78,7 +79,7 @@ class WordpressAPI:
     else:
       retries += 1
     try:
-        response = requests.get(self.epposts, timeout=10)
+        response = requests.get(f'{self.epposts}?per_page=100', timeout=10)
         response.raise_for_status()  # Lança exceção para erros HTTP
         total_pages_header = response.headers.get('X-WP-TotalPages')
         if not total_pages_header:
@@ -113,11 +114,10 @@ class WordpressAPI:
     return posts 
 
   def __create_video(self,video):
-
     tags = []
     for tag in video.tags:
       tags.append(self.get_tag_id_by_name(tag))
-
+    
     hosp_thumb, id_thumb = self.postImageLink(video.thumbnail_url,video.id+'_'+video.slug)
     data = {
     'title'           : video.title,
@@ -146,21 +146,24 @@ class WordpressAPI:
       print(f'\n✅ Video Adicionado \n   titulo-xv: {video.title} -- url-xv: {video.url}')
       return True
     else:
-      print(f'Erro  + {dict(video)}')
-      raise Exception("Video Não Adicionado")
+      print(f'\n❌ Erro ao adicionar video \n   titulo-xv: {video.title} -- url-xv: {video.url} ')
+      print(response.text)
+      print(response.status_code)
+      return False
 
   def get_tag_id_by_name(self,tag_name:str):
     params = {"search": tag_name}
-    response = requests.get(self.eptags, headers=self.wordpress_header, json=params)
+    response = requests.get(f"{self.eptags}?per_page=100", headers=self.wordpress_header, json=params)
     if response.status_code == 200:
-        tags = response.json()
-        for tag in tags:
-          if tag['name'].lower() == tag_name.lower():
-            return tag['id']
-        data = {"name": tag_name}
-        create_response = requests.post(self.eptags, json=data, headers=self.wordpress_header)
-        if create_response.status_code == 201:
-            return create_response.json()['id']
+      tags = response.json()
+      
+      for tag in tags:
+        if tag['name'].lower() == tag_name.lower():
+          return tag['id']
+      data = {"name": tag_name}
+      create_response = requests.post(self.eptags, json=data, headers=self.wordpress_header)
+      if create_response.status_code == 201:
+        return create_response.json()['id']
 
   def add_videos(self,videos:list):
     vidExists = self.get_wp_posts()
@@ -176,6 +179,8 @@ class WordpressAPI:
           video.getIaTexts()
           if self.__create_video(video):
             qty_vids_added +=1
+            break
       except Exception as e:
+        traceback.print_exc()
         print(f'\n❌❌❌ Não Adicionado pois ocorreu um erro \n{e}\n   titulo-xv: {video.title} -- url-xv: {video.url} ')
     return qty_vids_added
