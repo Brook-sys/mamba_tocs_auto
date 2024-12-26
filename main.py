@@ -3,6 +3,7 @@ import sys
 from xvideos_api.xvideos_api import Client as clientxvideos
 #from xnxx_api import Client as clientxnxx
 from firebase_connection import FirebaseConnection
+from generalConfigs import DefaultValues
 from wordpress_controller import WordpressAPI
 from video_processing import VideoSearcher, SearchConfig
 import datetime

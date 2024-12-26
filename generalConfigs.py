@@ -16,8 +16,9 @@ class DefaultValues:
 
     def get(self,key:str,default=None):
         try:
-            return self.defaultvalues.get[key]
+            return self.defaultvalues.get(key)
         except Exception as e:
+            print('error',e)
             return default
 
     def set(self,key:str,value):
