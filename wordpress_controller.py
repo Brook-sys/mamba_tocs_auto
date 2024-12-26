@@ -173,7 +173,7 @@ class WordpressAPI:
       try:
         video.getIaTexts()
         if self.__create_video(video):
-          print(f'\n✅ Video Adicionado \n   titulo-xv: {video.title} -- url-xv: {video.url}')
+          print(f'✅ Video Adicionado \n   titulo-xv: {video.title} -- url-xv: {video.url}')
         else:
           print(f'\n❌ Erro ao adicionar video \n   titulo-xv: {video.title} -- url-xv: {video.url} ')
       except Exception as e:
