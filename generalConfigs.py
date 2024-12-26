@@ -1,5 +1,8 @@
 
 import json
+import os
+from dotenv import load_dotenv
+load_dotenv()
 class DefaultValues:
     def __init__(self, pathDefaultValues='defaultvalues.json'):
         self.pathDefaultValues  = pathDefaultValues
@@ -25,3 +28,12 @@ class DefaultValues:
         self.defaultvalues[key] = value
         with open(self.pathDefaultValues, "w", encoding="utf-8") as file:
             json.dump(self.defaultvalues, file, indent=4)
+
+class EnvValues:
+    def __init__(self):
+        self.groq_api_key = os.getenv("GROQ_API_KEY")
+        self.mode = os.getenv("MODE", "production")
+        self.prefix_mode = "DEBUG" if self.mode == "debug" else "PROD"
+        self.wpuser = os.getenv(f'WP_USER_{self.prefix_mode}')
+        self.wppass = os.getenv(f'WP_PASS_{self.prefix_mode}')
+        self.wpurl = os.getenv(f'WP_URL_{self.prefix_mode}')

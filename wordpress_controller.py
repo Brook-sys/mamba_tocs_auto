@@ -11,6 +11,9 @@ class WordpressAPI:
     self.epposts = self.url + '/posts'
     self.eptags = self.url + '/tags'
     self.epmedia = self.url + '/media'
+    self.allVideosID = ''
+    self.allVideos = ''
+    self.refreshAllVideos()
 
   def postImageLink(self,linkimage,nome):
 
@@ -97,7 +100,9 @@ class WordpressAPI:
     page = 1
     per_page = 100
     total_pages = self.get_wp_total_pages()
+    print(f"Obtendo posts existentes...")
     while True:
+        print(f'\r{page * 100 / total_pages:.2f}%',end='')
         response = requests.get(f"{self.epposts}?per_page={per_page}&page={page}")
         if response.status_code != 200:
             print(f"Failed to retrieve posts. Status code: {response.status_code}")
@@ -105,12 +110,12 @@ class WordpressAPI:
         else:
           response_json = response.json()
           posts.extend(response_json)
-          print(f"Posts obtidos na página {page}: {len(response_json)}")
           if page >= total_pages:
               break
           page += 1
-          time.sleep(0.5)  # Ajuste conforme necessário
-    print(f"Total de posts obtidos: {len(posts)}")
+          time.sleep(0.5)
+          # Ajuste conforme necessário
+    print(f"\rTotal de posts existentes: {len(posts)}")
     return posts 
 
   def __create_video(self,video):
@@ -143,10 +148,8 @@ class WordpressAPI:
 
     response = requests.post(self.epposts,headers=self.wordpress_header, json=data)
     if response.status_code == 201:
-      print(f'\n✅ Video Adicionado \n   titulo-xv: {video.title} -- url-xv: {video.url}')
       return True
     else:
-      print(f'\n❌ Erro ao adicionar video \n   titulo-xv: {video.title} -- url-xv: {video.url} ')
       print(response.text)
       print(response.status_code)
       return False
@@ -166,20 +169,19 @@ class WordpressAPI:
         return create_response.json()['id']
 
   def add_videos(self,videos:list):
-    vidExists = self.get_wp_posts()
-    idExists = [video.get('meta', {}).get('xv_id') for video in vidExists]
-    qty_vids_added = 0
     for video in videos:
       try:
-        if video.id in idExists:
-          allvidsfilter = {video.get('meta', {}).get('xv_id'): video for video in vidExists}
-          thevid = allvidsfilter.get(video.id)
-          print(f'\n❌ Não Adicionado pois ja consta \n   titulo-xv: {video.title} -- url-xv: {video.url} \n   titulo-wp: {thevid.get("title").get("rendered")} -- url-wp: {thevid.get("link")}')
+        video.getIaTexts()
+        if self.__create_video(video):
+          print(f'\n✅ Video Adicionado \n   titulo-xv: {video.title} -- url-xv: {video.url}')
         else:
-          video.getIaTexts()
-          if self.__create_video(video):
-            qty_vids_added +=1
+          print(f'\n❌ Erro ao adicionar video \n   titulo-xv: {video.title} -- url-xv: {video.url} ')
       except Exception as e:
         traceback.print_exc()
         print(f'\n❌❌❌ Não Adicionado pois ocorreu um erro \n{e}\n   titulo-xv: {video.title} -- url-xv: {video.url} ')
-    return qty_vids_added
+
+  def refreshAllVideos(self):
+    self.allVideos = self.get_wp_posts()
+    self.allVideosID = [video.get('meta', {}).get('xv_id') for video in self.allVideos]
+  def verifyVideoExists(self,video):
+    return video.id in self.allVideosID

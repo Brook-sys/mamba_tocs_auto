@@ -1,24 +1,29 @@
 {
-    "termos"        :   ["coroa gostosona",
-                        "madura",
-                        "madura amador",
-                        "madura rica",
-                        "cougar",
-                        "coroa peituda",
-                        "cougar slutty",
-                        "madura culona",
-                        "madura tetona"],
-    "minimoDiario"  :   2,
-    "qtyPorTermo"   :   5,
-    "maxTentativas" :   6,
-    "groqModel"     :   "llama-3.3-70b-versatile",
-    "sites"         :   {
-        "xvideos"   :   true, 
-        "xnxx"      :   false,
-        "pornhub"   :   false,
-        "spankbang" :   false,
-        "eporner"   :   false,
-        "sex"       :   false,
-        "hqporner"  :   false
+    "termos"            :   ["coroa gostosona",
+                            "madura",
+                            "madura amador",
+                            "madura rica",
+                            "cougar",
+                            "coroa peituda",
+                            "cougar slutty",
+                            "madura culona",
+                            "madura tetona"],
+    "minimoDiario"      :   10,
+    "qtyPorTermo"       :   5,
+    "maxTentativas"     :   10,
+    "groqModel"         :   "llama-3.1-70b-versatile",
+    "firebaseValues"    :   {
+        "databaseURL"   :   "https://alimentsite-86639-default-rtdb.firebaseio.com/",
+        "keyFile"       :   "servicekey.json",
+        "appName"       :   "connsite"
+    },
+    "sites"             :   {
+        "xvideos"       :   true, 
+        "xnxx"          :   false,
+        "pornhub"       :   false,
+        "spankbang"     :   false,
+        "eporner"       :   false,
+        "sex"           :   false,
+        "hqporner"      :   false
     }
 }

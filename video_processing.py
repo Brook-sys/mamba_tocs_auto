@@ -5,7 +5,9 @@ import time
 from llama_index.llms.groq import Groq
 import sys
 import os
-from generalConfigs import DefaultValues
+from generalConfigs import DefaultValues,EnvValues
+from wordpress_controller import WordpressAPI
+from firebase_connection import FirebaseConnection
 
 inColab = "google.colab" in sys.modules
 userdata= None
@@ -96,25 +98,27 @@ class Video:
     self.meta_desc = ''
     self.image_alt = ''
     self.keywords = ''
-    #self.getIaTexts() if not mode == 'debug' else None
     
   def getIaTexts(self):
     
     with open("localprompts.json", "r") as f:
         prompts = json.load(f)
     try:
-        self.desc = self.exec_prompt(prompts["descricao"].format(titulo=self.title, tags=str(self.tags)))
-        self.title = self.exec_prompt(prompts["titulo"].format(titulo=self.title, tags=str(self.tags)))
-        self.meta_desc = self.exec_prompt(prompts["meta_descricao"].format(titulo=self.title, descricao=self.desc))
-        self.image_alt = self.exec_prompt(prompts["imagem_alt"].format(titulo=self.title, tags=str(self.tags)))
-        self.keywords = self.exec_prompt(prompts["palavras_chave"].format(titulo=self.title, tags=str(self.tags)))
+        print(f"Gerando textos por IA para o video: {self.title}")
+        self.desc       = self.exec_prompt(prompts["descricao"].format(titulo=self.title, tags=str(self.tags)),texto='Descrição')
+        self.title      = self.exec_prompt(prompts["titulo"].format(titulo=self.title, tags=str(self.tags)),texto='Titulo')
+        self.meta_desc  = self.exec_prompt(prompts["meta_descricao"].format(titulo=self.title, descricao=self.desc),texto='Meta descrição')
+        self.image_alt  = self.exec_prompt(prompts["imagem_alt"].format(titulo=self.title, tags=str(self.tags)),texto='Descrição da imagem')
+        self.keywords   = self.exec_prompt(prompts["palavras_chave"].format(titulo=self.title, tags=str(self.tags)),texto='Palavras chave')
+        print(f"\r✅ Textos criados com Sucesso!!!")
         #print(f'\n\n------\n\n{self.title}\n\n{self.desc}\n\n{self.meta_desc}\n\n{self.image_alt}\n\n{self.keywords}\n\n------\n\n')
     except Exception as e:
         print(f"Erro na chamada da API: {e}")
         time.sleep(60) # Pausa de 1 minuto em caso de erro
         return self.getIaTexts() 
 
-  def exec_prompt(self,prompt):
+  def exec_prompt(self,prompt,texto=''):
+    print(f"\rCriando {texto}...", end="")
     time.sleep(2)
     return str(self.llm.complete(prompt)).replace('"','').replace("'","")
 class SearchConfig:
@@ -126,8 +130,24 @@ class SearchConfig:
     self.max_attempts       = self.source.get('maxTentativas')
 
 class VideoSearcher:
-  def __init__(self, clientes, config,wpAPI,firebase_connection):
-    
+  def __init__(self, clientes):
+
+      self.env_values = EnvValues()
+      self.def_values = DefaultValues()
+      
+      self.wpController = WordpressAPI(
+                                        url       = self.env_values.wpurl,
+                                        user      = self.env_values.wpuser,
+                                        password  = self.env_values.wppass)
+      
+      fb_values = self.def_values.get('firebaseValues')
+      self.firebase_connection = FirebaseConnection(
+                                                      service_key = fb_values.get('keyFile'),
+                                                      db_url      = fb_values.get('databaseURL'),
+                                                      app_name    = fb_values.get('appName'))
+      
+      self.config = SearchConfig(self.firebase_connection.getOnlineValues())
+      
       self.client_xvideos   = clientes.get('xvideos')
       self.client_xnxx      = clientes.get('xnxx')
       self.client_pornhub   = clientes.get('pornhub')
@@ -136,12 +156,11 @@ class VideoSearcher:
       self.client_sex       = clientes.get('sex')
       self.client_hqporner  = clientes.get('hqporner')
       
-      self.config = config
       self.total_added = 0
       self.attempt = 1
       self.rounds = {}
-      self.wpController = wpAPI
-      self.firebase_connection = firebase_connection
+      
+      
 
   def setConfig(self,config):
     self.config = config
@@ -151,39 +170,28 @@ class VideoSearcher:
 
   def search_and_add_videos(self):
       multiplier = 1
+      videolist = []
       while True:
           qty_search = self.config.search_qty * multiplier
-          term_results = {}
-          total_added_tentativa = 0
           for term in self.config.terms:
               print(f"\n- Pesquisa por: {term}")
               videos = self.client_xvideos.search(term)
-              titles = []
-              videolist = []
               for _,video in zip(range(qty_search), videos):
                 try:
-                  titles.append(video.title)
                   video_obj = xvideosVideo(xv_origin=video)
-                  print(video_obj.title)
-                  videolist.append(video_obj.video)
+                  if self.wpController.verifyVideoExists(video_obj.video):
+                    print(f"Video ja existente: {video_obj.title}")
+                  else:
+                    videolist.append(video_obj.video)
+                    print(f"{len(videolist)}º Video para adicionar: {video_obj.title}")
                 except Exception as e:
-                  print(f"Erro ao criar video '{video.title}': {e}")
-              term_results[self.format_key(term)] = titles
-              total_added_tentativa += self.wpController.add_videos(videolist)
-              self.total_added += total_added_tentativa
-              if self.total_added >= self.config.min_daily:
-                self.final_report()
-                return
-
-          self.rounds[f'rodada{self.attempt}'] = {
-              'qty_adicionado': total_added_tentativa,
-              'qty_videos_analisados': len(videolist),
-              'termos': term_results,
-          }
-
-          if self.attempt >= self.config.max_attempts:
-              self.final_report()
-              break
+                  print(f"\n❌❌❌ Erro ao gerar objeto de video '{video.title}': {e}")
+                  
+                if len(videolist) >= self.config.min_daily:
+                  self.wpController.add_videos(videolist)
+                  self.total_added = len(videolist)
+                  self.final_report()
+                  return
           else:
               multiplier *= 2
               self.attempt += 1
@@ -193,15 +201,18 @@ class VideoSearcher:
     video = self.client_xvideos.get_video(urlvideo)
     video_obj = xvideosVideo(xv_origin=video)
     print(video_obj.title)
-    videolist.append(video_obj.video)
-    self.wpController.add_videos(videolist)
+    if self.wpController.verifyVideoExists(video_obj.video):
+        print(f"Video ja existente: {video_obj.title}")
+        
+    else:
+      videolist.append(video_obj.video)
+      self.wpController.add_videos(videolist)
 
   def final_report(self):
       print(f'\n---\nResultado Final:\n    -Minimo Necessario: {self.config.min_daily}\n    -Qty Tentativas: {self.attempt}\n    -Qty total de Videos Adicionados: {self.total_added}\n---\n')
       final_result = {
-          'configs': vars(self.config),
-          'total_added': self.total_added,
-          'qty_tentativas': self.attempt,
-          'rodadas': self.rounds
+          'configs'         : vars(self.config),
+          'total_added'     : self.total_added,
+          'qty_tentativas'  : self.attempt
       }
-      self.firebase_connection.report(final_result)
+      #self.firebase_connection.report(final_result)
