@@ -5,6 +5,7 @@ import time
 from llama_index.llms.groq import Groq
 import sys
 import os
+from generalConfigs import DefaultValues
 
 inColab = "google.colab" in sys.modules
 userdata= None
@@ -14,6 +15,7 @@ else:
   from dotenv import load_dotenv
   load_dotenv()
 groq_api_key = userdata.get("GROQ_API_KEY") if userdata else os.getenv("GROQ_API_KEY")
+groq_model = DefaultValues().get('groqModel')
 mode = userdata.get('MODE') if userdata else os.getenv('MODE', 'production')
 
 class xvideosVideo:
@@ -88,7 +90,7 @@ class Video:
     self.tags = tags
     self.embed_iframe = embed_iframe
     
-    self.llm = Groq(model="llama-3.1-70b-versatile", api_key=groq_api_key)
+    self.llm = Groq(model=groq_model, api_key=groq_api_key)
     self.desc = ''
     self.title = self.title
     self.meta_desc = ''
@@ -116,22 +118,12 @@ class Video:
     time.sleep(2)
     return str(self.llm.complete(prompt)).replace('"','').replace("'","")
 class SearchConfig:
-  def __init__(self,firevalues):
-    self.pathDefaultValues  = 'defaultvalues.json'
-    self.defaultvalues      = self.load_default_values(self.pathDefaultValues)
-    self.source             = firevalues or self.defaultvalues
-    self.source             = self.defaultvalues if mode == 'debug' else self.source
+  def __init__(self,firevalues=None):
+    self.source             = firevalues or DefaultValues().defaultvalues
     self.terms              = self.source.get('termos')
     self.min_daily          = self.source.get('minimoDiario')
     self.search_qty         = self.source.get('qtyPorTermo')
     self.max_attempts       = self.source.get('maxTentativas')
-  def load_default_values(self,file_path):
-    try:
-        with open(file_path, "r", encoding="utf-8") as file:
-            return json.load(file)
-    except (FileNotFoundError, json.JSONDecodeError) as e:
-        print(f"Erro ao carregar o arquivo JSON: {e}")
-        return None
 
 class VideoSearcher:
   def __init__(self, clientes, config,wpAPI,firebase_connection):

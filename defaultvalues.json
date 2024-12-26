@@ -11,6 +11,7 @@
     "minimoDiario"  :   2,
     "qtyPorTermo"   :   5,
     "maxTentativas" :   6,
+    "groqModel"     :   "llama-3.1-70b-versatile",
     "sites"         :   {
         "xvideos"   :   true, 
         "xnxx"      :   false,
@@ -19,5 +20,5 @@
         "eporner"   :   false,
         "sex"       :   false,
         "hqporner"  :   false
-    } 
+    }
 }
