@@ -82,7 +82,7 @@ class WordpressAPI:
     else:
       retries += 1
     try:
-        response = requests.get(f'{self.epposts}?per_page=100', timeout=10)
+        response = requests.get(f'{self.epposts}?per_page=100')
         response.raise_for_status()  # Lança exceção para erros HTTP
         total_pages_header = response.headers.get('X-WP-TotalPages')
         if not total_pages_header:
@@ -95,6 +95,7 @@ class WordpressAPI:
     except ValueError:
         print(f"Cabeçalho X-WP-TotalPages inválido: {response.headers.get('X-WP-TotalPages')}. Verifique a configuração do servidor.")
         return self.get_wp_total_pages(retries)
+      
   def get_wp_posts(self):
     posts = []
     page = 1
