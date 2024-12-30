@@ -123,7 +123,7 @@ class WordpressAPI:
     tags = []
     for tag in video.tags:
       tags.append(self.get_tag_id_by_name(tag))
-    
+    return None
     hosp_thumb, id_thumb = self.postImageLink(video.thumbnail_url,video.id+'_'+video.slug)
     data = {
     'title'           : video.title,
@@ -141,7 +141,9 @@ class WordpressAPI:
         'trailer_url'     : video.trailer_url,
         'thumb'           : hosp_thumb,
         'duration'        : video.length,
-        'xv_id'           : video.id,
+        'porn_site'       : video.sitename,
+        'porn_site_id'    : video.id,
+        'porn_site_url'   : video.url,
         'schema_embed'    : video.embed_url,
         'schema_duration' : f'PT{video.length}S',
 
@@ -169,12 +171,41 @@ class WordpressAPI:
       if create_response.status_code == 201:
         return create_response.json()['id']
 
+  def atualizar_post(self,post_id, novos_dados):
+    try:
+        url = f'{self.epposts}/{post_id}'
+        response = requests.post(url,headers=self.wordpress_header, json=novos_dados)
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        print(f"Erro ao atualizar post {post_id}: {e}.")
+        return None
+  def update_all_videos(self):
+    
+    for video in self.allVideos:
+      video_id = video['meta']['xv_id'] or video['meta']['schema_embed'].split('/')[-1] 
+      post_id = video['id']
+      novo_campo = video['meta']['porn_site_id']
+      if not novo_campo:
+        novos_dados = {
+          'meta':
+            {'porn_site_id': video_id,
+              'porn_site': 'xvideos'}}
+        print(novos_dados)
+        post_atualizado = self.atualizar_post(post_id, novos_dados)
+        if post_atualizado:
+            print(f"Post {post_id} atualizado com sucesso!")
+        else:
+            print(f"Falha ao atualizar o post {post_id}.")
+      else:
+        print('nada para atualizar')
+
   def add_videos(self,videos:list):
     for video in videos:
       try:
         video.getIaTexts()
         if self.__create_video(video):
-          print(f'✅ Video Adicionado \n   titulo-xv: {video.title} -- url-xv: {video.url}')
+          print(f'\n✅ Video Adicionado \n   titulo-xv: {video.title} -- url-xv: {video.url}')
         else:
           print(f'\n❌ Erro ao adicionar video \n   titulo-xv: {video.title} -- url-xv: {video.url} ')
       except Exception as e:
@@ -183,6 +214,6 @@ class WordpressAPI:
 
   def refreshAllVideos(self):
     self.allVideos = self.get_wp_posts()
-    self.allVideosID = [video.get('meta', {}).get('xv_id') for video in self.allVideos]
+    self.allVideosID = [video.get('meta', {}).get('porn_site_id') for video in self.allVideos]
   def verifyVideoExists(self,video):
     return video.id in self.allVideosID

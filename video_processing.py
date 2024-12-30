@@ -4,6 +4,7 @@ import unicodedata
 import time
 from llama_index.llms.groq import Groq
 import sys
+import requests
 import os
 from generalConfigs import DefaultValues,EnvValues
 from wordpress_controller import WordpressAPI
@@ -26,15 +27,16 @@ class xvideosVideo:
     
     self.slug = self.tranform_str(self.title)
     self.video_url = video_url
-    self.thumbnail_url = thumb if thumb else xv_origin.thumbnail_url
-    self.trailer_url = trailer_url if trailer_url else self.convert_thumb_to_vid(self.thumbnail_url)
-    self.length = self.time_xv_to_sec(duration if duration else xv_origin.length)
-    self.url = xv_url if xv_url else xv_origin.url
+    self.thumbnail_url = thumb or xv_origin.thumbnail_url
+    self.trailer_url = trailer_url or self.convert_thumb_to_vid(self.thumbnail_url)
+    self.length = self.time_xv_to_sec(duration or xv_origin.length)
+    self.url = xv_url or xv_origin.url
     self.id = self.extract_id_from_url(self.url)
-    self.tags = tags if tags else xv_origin.tags
+    self.tags = tags or xv_origin.tags
     self.embed_url = f'https://videoscdn.online/{self.id}'
     embed_xv_cdn = f'<iframe src="{self.embed_url}" frameborder=0 width=510 height=400 scrolling=no allowfullscreen=allowfullscreen></iframe>'
     self.embed_iframe = embed if embed else embed_xv_cdn
+    self.sitename = 'xvideos'
     
     
     self.video = Video(
@@ -79,7 +81,7 @@ class xvideosVideo:
   
 class Video:
   
-  def __init__(self, title='',embed_url='',embed_iframe='',slug='',video_url='',thumbnail_url='',trailer_url='',length=120,url='',id='',tags=[]) -> None:
+  def __init__(self, title='',embed_url='',embed_iframe='',slug='',video_url='',thumbnail_url='',trailer_url='',length=120,url='',id='',tags=[],sitename='') -> None:
     self.title = title
     self.embed_url = embed_url
     self.slug = slug
@@ -91,10 +93,10 @@ class Video:
     self.id = id
     self.tags = tags
     self.embed_iframe = embed_iframe
+    self.sitename = sitename
     
     self.llm = Groq(model=groq_model, api_key=groq_api_key)
     self.desc = ''
-    self.title = self.title
     self.meta_desc = ''
     self.image_alt = ''
     self.keywords = ''
@@ -104,7 +106,7 @@ class Video:
     with open("localprompts.json", "r") as f:
         prompts = json.load(f)
     try:
-        print(f"Gerando textos por IA para o video: {self.title}")
+        print(f"\nGerando textos por IA para o video: {self.title}")
         self.desc       = self.exec_prompt(prompts["descricao"].format(titulo=self.title, tags=str(self.tags)),texto='Descrição')
         self.title      = self.exec_prompt(prompts["titulo"].format(titulo=self.title, tags=str(self.tags)),texto='Titulo')
         self.meta_desc  = self.exec_prompt(prompts["meta_descricao"].format(titulo=self.title, descricao=self.desc),texto='Meta descrição')
@@ -216,3 +218,54 @@ class VideoSearcher:
           'qty_tentativas'  : self.attempt
       }
       #self.firebase_connection.report(final_result)
+  
+  def getvideolink(self,idvideo):
+    response = requests.get(f'https://www.xvideos.com/embedframe/{idvideo}')
+    link = response.text.split("html5player.setVideoURL('/")[1].split("');")[0]
+    link = f'https://xvideos.com/{link}'
+    print(link)
+    rr = requests.get(link)
+    if rr.status_code == 200:
+      return link
+    else:
+      return None
+  
+  def update_all_text_videos(self):
+    
+    
+    for video in self.wpController.allVideos:
+      video_id = video['meta']['xv_id'] or video['meta']['porn_site_id']
+      
+      
+      rev = video['meta']['rev']
+      if not rev or rev < 2:
+        
+        time.sleep(1)
+        url = self.getvideolink(video_id)
+        print(video_id)
+        if url:
+          vid = self.client_xvideos.get_video(url)
+          viddd = xvideosVideo(xv_origin=vid)
+          vidd = viddd.video	
+          vidd.getIaTexts()
+          post_id = video['id']
+          sub_nc = video["content"]["rendered"].split('\" alt=\"')[0]
+          newcontent = f'{sub_nc}\" alt=\"{vidd.image_alt}"> <br> <p style="text-align: center;">{vidd.desc}</p><br>'
+          novos_dados = {
+            'title'   : vidd.title,
+            'content' : newcontent,
+            'meta':
+              { 'description'   : vidd.meta_desc,
+                'keywords'      : vidd.keywords,
+                'rev'           : 2,
+                'porn_site_url' : url
+                }}
+          post_atualizado = self.wpController.atualizar_post(post_id, novos_dados)
+          if post_atualizado:
+              print(f"Post {post_id} atualizado com sucesso!")
+          else:
+              print(f"Falha ao atualizar o post {post_id}.")
+        else:
+          print(f'Erro ao obter link do video {video_id}')
+      else:
+        print(f'Nada para atualizar no post: {video["id"]}')
