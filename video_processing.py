@@ -101,7 +101,7 @@ class Video:
     self.image_alt = ''
     self.keywords = ''
     
-  def getIaTexts(self):
+  def getIaTexts(self, attempts=0):
     
     with open("localprompts.json", "r") as f:
         prompts = json.load(f)
@@ -115,9 +115,13 @@ class Video:
         print(f"\r✅ Textos criados com Sucesso!!!")
         #print(f'\n\n------\n\n{self.title}\n\n{self.desc}\n\n{self.meta_desc}\n\n{self.image_alt}\n\n{self.keywords}\n\n------\n\n')
     except Exception as e:
+        if attempts >= 3:
+            print("Limites de tentativas excedidos.")
+            raise
         print(f"Erro na chamada da API: {e}")
-        time.sleep(60) # Pausa de 1 minuto em caso de erro
-        return self.getIaTexts() 
+        time.sleep(600) # Pausa de 10 minutos em caso de erro
+        attempts += 1
+        return self.getIaTexts(attempts) 
 
   def exec_prompt(self,prompt,texto=''):
     print(f"\rCriando {texto}...", end="")
@@ -269,3 +273,5 @@ class VideoSearcher:
           print(f'Erro ao obter link do video {video_id}')
       else:
         print(f'Nada para atualizar no post: {video["id"]}')
+    
+    
