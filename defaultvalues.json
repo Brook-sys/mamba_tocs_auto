@@ -17,6 +17,10 @@
         "keyFile"       :   "servicekey.json",
         "appName"       :   "connsite"
     },
+    "max_retries"       :   {
+        "general"       :   10,
+        "llmtexts"      :   4
+    },
     "sites"             :   {
         "xvideos"       :   true, 
         "xnxx"          :   false,

@@ -82,6 +82,10 @@ class xvideosVideo:
 class Video:
   
   def __init__(self, title='',embed_url='',embed_iframe='',slug='',video_url='',thumbnail_url='',trailer_url='',length=120,url='',id='',tags=[],sitename='') -> None:
+    
+    self.env_values = EnvValues()
+    self.def_values = DefaultValues()
+    self.max_retries = self.def_values.get('max_retries', {}).get('llmtexts', 5)
     self.title = title
     self.embed_url = embed_url
     self.slug = slug
@@ -115,7 +119,7 @@ class Video:
         print(f"\r✅ Textos criados com Sucesso!!!")
         #print(f'\n\n------\n\n{self.title}\n\n{self.desc}\n\n{self.meta_desc}\n\n{self.image_alt}\n\n{self.keywords}\n\n------\n\n')
     except Exception as e:
-        if attempts >= 3:
+        if attempts >= self.max_retries:
             print("Limites de tentativas excedidos.")
             raise
         print(f"Erro na chamada da API: {e}")
@@ -273,5 +277,6 @@ class VideoSearcher:
           print(f'Erro ao obter link do video {video_id}')
       else:
         print(f'Nada para atualizar no post: {video["id"]}')
-    
+
+
     

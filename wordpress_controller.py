@@ -2,8 +2,12 @@ import requests
 import base64
 import time
 import traceback
+from generalConfigs import DefaultValues,EnvValues
 class WordpressAPI:
-  def __init__(self,url,user,password) -> None:
+  def __init__(self,url,user,password):
+    self.env_values = EnvValues()
+    self.def_values = DefaultValues()
+    self.max_retries = self.def_values.get('max_retries', {}).get('general', 5)
     self.wordpress_credentials = user + ':' + password
     self.wordpress_token = base64.b64encode(self.wordpress_credentials.encode())
     self.wordpress_header = {'Authorization': 'Basic ' + self.wordpress_token.decode('utf-8')}
@@ -76,13 +80,14 @@ class WordpressAPI:
     return response_json
 
   def get_wp_total_pages(self,retries=0):
-    if retries >= 4:
+    if retries >= self.max_retries:
       print('Erro ao obter total de páginas. Máximo de tentativas excedido.')
       return None
     else:
       retries += 1
     try:
         response = requests.get(f'{self.epposts}?per_page=100')
+        print(f'{self.epposts}?per_page=100')
         response.raise_for_status()  # Lança exceção para erros HTTP
         total_pages_header = response.headers.get('X-WP-TotalPages')
         if not total_pages_header:
@@ -102,20 +107,19 @@ class WordpressAPI:
     per_page = 100
     total_pages = self.get_wp_total_pages()
     print(f"Obtendo posts existentes...")
-    while True:
+    while page <= total_pages:
+      try:
         print(f'\r{page * 100 / total_pages:.2f}%',end='')
         response = requests.get(f"{self.epposts}?per_page={per_page}&page={page}")
-        if response.status_code != 200:
-            print(f"Failed to retrieve posts. Status code: {response.status_code}")
-            time.sleep(2)
-        else:
-          response_json = response.json()
-          posts.extend(response_json)
-          if page >= total_pages:
-              break
-          page += 1
-          time.sleep(0.5)
-          # Ajuste conforme necessário
+        response.raise_for_status()
+        response_json = response.json()
+        posts.extend(response_json)
+        page += 1
+        time.sleep(0.5)
+      except Exception as e:
+        print(f"Failed to retrieve posts. Status code: {e}")
+        time.sleep(2)
+          
     print(f"\rTotal de posts existentes: {len(posts)}")
     return posts 
 
