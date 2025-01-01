@@ -228,19 +228,22 @@ class VideoSearcher:
       #self.firebase_connection.report(final_result)
   
   def getvideolink(self,idvideo):
-    response = requests.get(f'https://www.xvideos.com/embedframe/{idvideo}')
-    link = response.text.split("html5player.setVideoURL('/")[1].split("');")[0]
-    link = f'https://xvideos.com/{link}'
-    print(link)
-    rr = requests.get(link)
-    if rr.status_code == 200:
-      return link
-    else:
+    try:
+      response = requests.get(f'https://www.xvideos.com/embedframe/{idvideo}')
+      link = response.text.split("html5player.setVideoURL('/")[1].split("');")[0]
+      link = f'https://xvideos.com/{link}'
+      print(link)
+      rr = requests.get(link)
+      if rr.status_code == 200:
+        return link
+      else:
+        return None
+    except:
       return None
   
   def update_all_text_videos(self):
     
-    
+    excluded_list = []
     for video in self.wpController.allVideos:
       video_id = video['meta']['xv_id'] or video['meta']['porn_site_id']
       
@@ -249,8 +252,9 @@ class VideoSearcher:
       if not rev or rev < 2:
         
         time.sleep(1)
-        url = self.getvideolink(video_id)
         print(video_id)
+        url = self.getvideolink(video_id)
+        
         if url:
           vid = self.client_xvideos.get_video(url)
           viddd = xvideosVideo(xv_origin=vid)
@@ -275,8 +279,11 @@ class VideoSearcher:
               print(f"Falha ao atualizar o post {post_id}.")
         else:
           print(f'Erro ao obter link do video {video_id}')
+          excluded_list.append(video_id)
       else:
         print(f'Nada para atualizar no post: {video["id"]}')
+    
+    print(f'\n\nLista de videos excluidos: {excluded_list}\n\n')
 
 
     
