@@ -31,8 +31,8 @@ clientes = {
 }
 
 video_searcher = VideoSearcher(clientes)
-video_searcher.update_all_text_videos()
-#video_searcher.search_and_add_videos()
+#video_searcher.update_all_text_videos()
+video_searcher.search_and_add_videos()
 #video_searcher.add_a_video("")
 end_time = datetime.datetime.now()
 print(f"\nTermino: {end_time.strftime('%d/%m/%Y %H:%M:%S')}\n-----------------------------------------------\n", )

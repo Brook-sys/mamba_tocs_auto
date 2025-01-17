@@ -89,6 +89,7 @@ class WordpressAPI:
         response = requests.get(f'{self.epposts}?per_page=100')
         print(f'{self.epposts}?per_page=100')
         response.raise_for_status()  # Lança exceção para erros HTTP
+        print(response.headers)
         total_pages_header = response.headers.get('X-WP-TotalPages')
         if not total_pages_header:
             print("Cabeçalho X-WP-TotalPages não encontrado. Verifique a API.")
